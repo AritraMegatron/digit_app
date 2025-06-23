@@ -1,44 +1,66 @@
-<!-- templates/index.html -->
-<canvas id="canvas" width="280" height="280" style="border:1px solid #000;"></canvas><br>
-<button onclick="clearCanvas()">Clear</button>
-<button onclick="submitDrawing()">Submit</button>
-<p id="result"></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Digit Recognizer</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Draw a Digit (0-9)</h1>
+    <p><strong>Draw single digit using your mouse pointer on the canvas</strong></p>
 
-<script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+    <canvas id="canvas" width="280" height="280"></canvas><br>
+    <button onclick="clearCanvas()">Clear</button>
+    <button onclick="submitDrawing()">Submit</button>
+    <p id="result"></p>
 
-ctx.fillStyle = "white";  // initialize with white background
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-let drawing = false;
+        let drawing = false;
 
-canvas.addEventListener("mousedown", () => drawing = true);
-canvas.addEventListener("mouseup", () => drawing = false);
-canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mousemove', draw);
 
-function draw(e) {
-    if (!drawing) return;
-    ctx.fillStyle = "black";
-    ctx.beginPath();
-    ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
-    ctx.fill();
-}
+        function draw(e) {
+            if (!drawing) return;
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-function clearCanvas() {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
+        function clearCanvas() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('result').innerText = "";
+        }
 
-function submitDrawing() {
-    const dataURL = canvas.toDataURL("image/png");
-    fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: dataURL })
-    }).then(res => res.json())
-      .then(data => {
-        document.getElementById('result').innerText = `Prediction: ${data.prediction}`;
-      });
-}
-</script>
+        function submitDrawing() {
+            const dataURL = canvas.toDataURL('image/png');
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataURL })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = `Prediction: ${data.prediction}`;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error in prediction.';
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
